@@ -1,22 +1,21 @@
-This page describes how to train the [Inception-Resnet-v1 model](https://arxiv.org/abs/1602.07261) as a classifier, i.e. not using Triplet Loss as was described in the [Facenet](http://arxiv.org/abs/1503.03832) paper. As noted [here](http://www.robots.ox.ac.uk/~vgg/publications/2015/Parkhi15/parkhi15.pdf), training as a classifier makes training significantly easier and faster.
-The Facenet paper also used the non-ResNet version of the Inception architecture. These networks seems to be more difficult to train and does not converge very well when trained on the CASIA/Facescrub datasets. This can for example be seen as a relatively large loss on the training set also when no regularization is used, implying that the model is unable to overfit the data. Using e.g. the Inception-Resnet-v1 solves the convergence problem and results in significantly improved performance on LFW, both looking at the accuracy and the validation rate (VAL@FAR=10^-3).
+Trang nay mo ta cach dao tao mo hinh [Inception-Resnet-v1 model](https://arxiv.org/abs/1602.07261) voi tu cach la mot trinh phan loai, tuc la khong su dung triplet loss nhu duoc mo ta trong bai bao [Facenet](http://arxiv.org/abs/1503.03832). Nhu da neu trong [here](http://www.robots.ox.ac.uk/~vgg/publications/2015/Parkhi15/parkhi15.pdf), dao tao nhu mot trinh phan loai lam cho viec dao tao de dang hon va nhanh hon dang ke.
+Bai bao ve FaceNet cung su dung phien ban khong phai Resnet cua kien truc Inception. Cac mang nay duong nhu kho dao tao hon, va khong hoi tu tot khi duoc dao tao tren bo du lieu CASIA / Facescrub. Vi du, dieu nay co the coi la mot gia tri loss kha lon tren tap huan luyen chua duoc chuan hoa, ngu y rang, mo hinh co the da overfit tren data. Su dung vi du Inception Resnet v1 giai quyet van de hoi tu va ket qua la hieu suat duoc cai thien dang ke tren tap du lieu LFW, ke ca ve do chinh xac va ty le ve do chinh xac tren tap du lieu xac nhan (VAL@FAR=10^-3).
 
 ## 1. Install Tensorflow
-The current version of this implementation requires Tensorflow version r1.7. It can be installed using [pip](https://www.tensorflow.org/get_started/os_setup#pip_installation) or from [sources](https://www.tensorflow.org/get_started/os_setup#installing_from_sources).<br>
-Since training of deep neural networks is extremely computationally intensive it is recommended to use a CUDA enabled GPU. The Tensorflow installation page has a detailed description of how to install CUDA as well.
-
+Phien ban hien tai cua trien khai nay yeu cau phien ban Tensorflow r1.7. No co the duoc cai dat bang cach su dung [pip](https://www.tensorflow.org/get_started/os_setup#pip_installation) hoac tu [sources](https://www.tensorflow.org/get_started/os_setup#installing_from_sources).<br>
+Do viec dao tao cac mang than kinh sau can kha nang tinh toan manh, cho nen chung toi se su dung GPU voi su ho tro cua CUDA trong qua trinh dao tao. Trang cai dat cua Tensorflow cung co huong dan ve cach cai dat CUDA ho tro tinh toan tren GPU trong qua trinh dao tao mang.
 ## 2. Clone the FaceNet [repo](https://github.com/davidsandberg/facenet.git)
-This is done using the command <br>
+Dieu nay duoc thuc hien dua vao cau lenh: <br>
 `git clone https://github.com/davidsandberg/facenet.git`
 
 ## 3. Set the python paths
-Set the environment variable `PYTHONPATH` to point to the `src` directory of the cloned repo. This is typically done something like this<br>
+Dat bien moi truong `PYTHONPATH` tro den thu muc  `src`  trong repo vua duoc clone ve cua ban. Dieu nay duoc thuc hien dua vao cau lenh <br>
 `export PYTHONPATH=[...]/facenet/src`<br>
-where `[...]` should be replaced with the directory where the cloned facenet repo resides.
+trong do `[...]` nen duoc thay the bang duong dan den thu muc chua repo vua clone ve cua ban.
 
-## 4. Prepare training dataset(s)
-### Dataset structure
-It is assumed that the training dataset is arranged as below, i.e. where each class is a sub-directory containing the training examples belonging to that class.
+## 4. Chuan bi tap du lieu dao tao
+### Cau truc cua tap du lieu
+Gia dinh rang, tap du lieu huan luyen duoc sap xep nhu ben duoi, tuc la trong do moi class se chua danh sach cac hinh anh thuoc class do
 
     Aaron_Eckhart
         Aaron_Eckhart_0001.jpg
@@ -35,9 +34,9 @@ It is assumed that the training dataset is arranged as below, i.e. where each cl
         ...
 
 ### Face alignment
-For face alignment it is recommended to use [MTCNN](https://github.com/kpzhang93/MTCNN_face_detection_alignment) which has been proven to give very good performance for alignment of train/test sets. The authors have been kind enough to provide an implementation of MTCNN based on Matlab and Caffe. In addition, a matlab script to align a dataset using this implementation can be found [here](https://github.com/davidsandberg/facenet/blob/master/tmp/align_dataset.m).
+De can chinh khuon mat, chung toi su dung mo hinh [MTCNN](https://github.com/kpzhang93/MTCNN_face_detection_alignment) da duoc chung minh la dem lai hieu suat tot cho cong viec can chinh khuon mat tren bo du lieu train va test. Co rat nhieu trien khai tot cho MTCNN bang Matlab va Caffe ma ban co the tim thay tren github. Ngoai ra ban co the tim thay tap lenh matlab de can chinh bo du lieu khuon mat bang cach su dung trien khai sau day: [here](https://github.com/davidsandberg/facenet/blob/master/tmp/align_dataset.m).
 
-To simplify the usage of this project a python/tensorflow implementation of MTCNN is [provided](https://github.com/davidsandberg/facenet/tree/master/src/align). This implementation does not have any other external dependencies than Tensorflow and the runtime on LFW is similar to the matlab implementation.
+De don gian hoa cho viec su dung trinh can chinh khuon mat duoc su dung trong du an nay, mot trien khai tensorflow/python MTCNN duoc cung cap tai day: [provided](https://github.com/davidsandberg/facenet/tree/master/src/align).  Viec trien khai nay khong co su phu thuoc vao bat ky cac yeu to nao khac ngoai tru tensorflow va thoi gian chay tren LFW tuong tu nhu viec thuc hien tren Matlab.
 
 ```
 python src/align/align_dataset_mtcnn.py \
@@ -47,10 +46,11 @@ python src/align/align_dataset_mtcnn.py \
 --margin 44
 ```
 
-The face thumbnails generated by the above command are 182x182 pixels. The input to the Inception-ResNet-v1 model is 160x160 pixels giving some margin to use a random crop.
-For the experiments that has been performed with the Inception-ResNet-v1 model an margin additional margin of 32 pixels has been used. The reason for this additional widen the bounding box given by the face alignment and give the CNN some additional contextual information. However, the setting of this parameter has not yet been studied and it could very well be that other margins results in better performance.
+Hinh anh dau ra duoc thu nho lai voi kich thuoc la 182 * 182. Dau vao cua mo hinh Inception Resnet v1 la 160 * 160 cung cap mot so margin de co the su dung random crop.
 
-To speed up the alignment process the above command can be run in multiple processes. Below, the same command is ran using 4 processes. To limit the memory usage of each Tensorflow  session the parameter `gpu_memory_fraction` is set to 0.25, meaning that each session is allowed to use maximum 25% of the total GPU memory. Try to decrease the number of parallel process and increase the fraction of GPU memory for each session if the below command causes the GPU memory to run out of memory.
+Doi voi cac thu nghiem da duoc thuc hien tren mo hinh Inception Resnet v1, mot margin bo sung duoc them vao la 32 pixel da duoc cong vao. Ly do cho viec bo sung nay la viec mo rong cac khung gioi han bbx se cung cap cho CNN mot so thong tin bo sung ngu canh. Tuy nhien viec cai dat cac tham so nay van chua duoc nghien cuu va rat co the la cac gia tri margin khac co the dan den hieu suat tot hon
+
+De tang toc qua trinh can chinh, lenh tren co the thuc hien dua vao viec thuc hien song song nhieu tien trinh. Duoi day, cung mot lenh co the chay duoc song song tren 4 process/ De gioi han muc do su dung bo nho cua moi session Tensorflow, tham so `gpu_memory_fraction` se duoc dat thanh 0.25, dieu do co nghia la moi session co the duoc phep su dung toi da 25% bo nho GPU. Co gang lam giam so luong cac tien trinh song song va tang ty le bo nho GPU duoc su dung cho moi session neu dieu nay khien bo nho GPU cua ban bi het:
 ```
 for N in {1..4}; do \
 python src/align/align_dataset_mtcnn.py \
@@ -63,8 +63,8 @@ python src/align/align_dataset_mtcnn.py \
 & done
 ```
 
-## 5. Start classifier training
-Training is started by running `train_softmax.py`. <br>
+## 5. Bat dau dao tao trinh phan loai
+Qua trinh dao tao duoc bat dau khi ban chay tap lenh trong `train_softmax.py`. <br>
 ```
 python src/train_softmax.py \
 --logs_base_dir ~/logs/facenet/ \
@@ -91,13 +91,13 @@ python src/train_softmax.py \
 --prelogits_norm_loss_factor 5e-4
 ```
 
-When training is started subdirectories for training session named after the data/time training was started on the format `yyyymmdd-hhmm` is created in the directories `log_base_dir` and `models_base_dir`. The parameter `data_dir` is used to point out the location of the training dataset. It should be noted that the union of several datasets can be used by separating the paths with a colon. Finally, the descriptor of the inference network is given by the `model_def` parameter. In the example above, `models.inception_resnet_v1` points to the `inception_resnet_v1` module in the package `models`. This module must define a function `inference(images, ...)`, where `images` is a placeholder for the input images (dimensions <?,160,160,3> in the case of Inception-ResNet-v1) and returns a reference to the `embeddings` variable.
+Khi viec dao tao bat dau duoc thuc hien thi cac thu muc con cho phien dao tao se duoc dat ten theo dinh dang:`yyyymmdd-hhmm` se duoc tao ra trong thu muc `log_base_dir` va `models_base_dir`. Tham so `data_dir` duoc su dung de chi den vi tri cua tap du lieu huan luyen. Can luu y rang, su ket hop cua mot so bo du lieu co the duoc su dung bang cach tach cac duong dan bang dau `..` Cuoi cung, mo ta mang suy luan duoc dua ra boi tham so `model_def`. Trong vi du tren, `models.inception_resnet_v1` chi den module `inception_resnet_v1` trong package `models`. Module nay xac dinh function `inference(images, ...)`, trong do `images` la mot placeholder cho hinh anh dau vao (co kich thuoc <?,160,160,3>) va tra ve mot tham chieu den bien `embeddings`.
 
-If the parameter `lfw_dir` is set to point to a the base directory of the LFW dataset the model is evaluated on LFW once every 1000 batches. For information on how to evaluate an existing model on LFW, please refer to the [Validate-on-LFW](https://github.com/davidsandberg/facenet/wiki/Validate-on-LFW) page. If no evaluation on LFW is desired during training it is fine to leave the `lfw_dir` parameter empty. However, please note that the LFW dataset that is used here should have been aligned in the same way as the training dataset.  
+Neu tham so `lfw_dir` duoc thiet lap de tro den mot thu muc co so cua bo du lieu LFW, mo hinh se duoc danh gia tren LFW cu sau 1000 batches. De biet thong tin chi tiet cho viec danh gia mot model tren tap du lieu LFW, vui long tham khao: [Validate-on-LFW](https://github.com/davidsandberg/facenet/wiki/Validate-on-LFW). Neu khong co tham so nao lien quan den viec danh gia tren bo du lieu LFW trong qua trinh dao tao, thi ban co the de trong tham so `lfw_dir`. Tuy nhien xin luu y rang, tap du lieu LFW o day phai duoc can chinh giong nhu tren tap du lieu huan luyen.
 
-The training will continue until the `max_nrof_epochs` is reached or training is terminated from the learning rate schedule file (see below). In this example training stops after 90 epochs. With a Nvidia Pascal Titan X GPU, Tensorflow r1.7, CUDA 8.0 and CuDNN 6.0 and the `inception-resnet-v1` model this takes roughly 10 hours.
-
-To improve the performance of the final model the learning rate is decreased by a factor 10 when the training starts to converge. This is done through a learning rate schedule defined in a text file pointed to by the parameter `learning_rate_schedule_file` while also setting the parameter `learning_rate` to a negative value. For simplicity the learning rate schedule used in this example [data/learning_rate_schedule_classifier_casia.txt](https://github.com/davidsandberg/facenet/blob/master/data/learning_rate_schedule_classifier_casia.txt) is also included in the repo. The schedule looks like this:
+Viec dao tao se duoc tiep tuc cho den khi `max_nrof_epochs` dat duoc hoac dao tao cham dut tu tap tin lich trinh cua learning rate (xem ben duoi). Trong vi du nay viec dao tao se dung lai sau 90 epoch. Với GPU Nvidia Pascal Titan X, Tensorflow r1.7, CUDA 8.0 và CuDNN 6.0 va mo hinh `inception-resnet-v1`, viec nay mat khoang 10 gio.
+ 
+De cai thien hieu suat cua mo hinh cuoi cung, toc do hoc tap giam di 10 nhan to khi dao tao bat dau hoi tu. Dieu nay duoc thuc hien thong qua mot lich bieu ty le hoc tap duoc xac dinh trong tep txt dc chi dinh boi tham so:  `learning_rate_schedule_file` dong thoi thiet lap tham so `learning_rate` den mot gia tri am. De don gian, lich bieu ty le hoc tap duoc su dung trong vi du nay [data/learning_rate_schedule_classifier_casia.txt](https://github.com/davidsandberg/facenet/blob/master/data/learning_rate_schedule_classifier_casia.txt) cung duoc bao gom trong repo. Lich trinh se trong nhu the nay:
 ```
 # Learning rate schedule
 # Maps an epoch number to a learning rate
@@ -106,32 +106,33 @@ To improve the performance of the final model the learning rate is decreased by 
 80: 0.0005
 91: -1
 ```
-Here, the first column is the epoch number and the second column is the learning rate, meaning that when the epoch number is in the range 60...80 the learning rate is set to 0.005. For epoch 91 the learning rate is set to -1 and this will cause training to stop.
+Ở đây, cột đầu tiên là số epoch và cột thứ hai là tốc độ học tập, nghĩa là khi số epoch nằm trong phạm vi 60 ... 80 thì tỷ lệ học được đặt thành 0,005. Đối với kỷ nguyên 91, tốc độ học tập được đặt thành -1 và điều này sẽ khiến việc đào tạo bị dừng lại.
 
-The L2 weight decay is set to 5e-4 and the dropout keep probability is set to 0.8. In addition to this regularization an L1 norm loss is applied to the prelogits activations (`--prelogits_norm_loss_factor 5e-4`). This will make the activations a bit more sparse and improve the models ability to generalize a little bit.
+Phân rã trọng lượng L2 (L2 weight decay) được đặt thành  5e-4 và xác suất bỏ học (drop-out) được đặt thành 0.8. Ngoài việc chuan hóa này, L1 norm loss được áp dụng cho các kích hoạt prelogits (`--prelogits_norm_loss_factor 5e-4`). Điều này sẽ làm cho các activations thưa thớt hơn một chút và cải thiện khả năng mô hình hóa một chút.
 
 ## 6. Running TensorBoard (optional)
-While FaceNet training is running it can be interesting to monitor the learning process. This can be done using [TensorBoard](https://www.tensorflow.org/how_tos/summaries_and_tensorboard/#launching-tensorboard). To start TensorBoard, run the command <br>`tensorboard --logdir=~/logs/facenet --port 6006`<br> and then point your web browser to <br>http://localhost:6006/
+Trong khi đào tạo FaceNet đang chạy, nó có thể thú vị để theo dõi quá trình học tập. Điều này có thể được thực hiện bằng cách sử dụng [TensorBoard](https://www.tensorflow.org/how_tos/summaries_and_tensorboard/#launching-tensorboard). De chay TensorBoard, ban hay thuc hien lenh sau:  <br>`tensorboard --logdir=~/logs/facenet --port 6006`<br> va sau do mo trinh duyet yeu thich cua ban voi duong dan <br>http://localhost:6006/
 
-## 7. Plotting learning curves
-If evaluation on the LFW dataset is used the training will produce a text file containing the learning curve (accuracy and validation rate per epoch). This text file can be found in the log directory and can be used to easily plot the model performance vs. training step. The matlab script to plot the below learning curves can be found [here](https://github.com/davidsandberg/facenet/blob/master/util/plot_learning_curves.m).
+## 7. Vẽ đường cong học tập
+Nếu đánh giá trên tập dữ liệu LFW được sử dụng, việc đào tạo sẽ tạo ra một tệp văn bản chứa đường cong học tập (độ chính xác và tỷ lệ xác nhận trên mỗi epoch). Tệp văn bản này có thể được tìm thấy trong thư mục nhật ký và có thể được sử dụng để dễ dàng vẽ sơ đồ hiệu suất mô hình so với bước đào tạo. Có thể tìm thấy tập lệnh MATLAB để vẽ các đường cong học tập dưới đây [here](https://github.com/davidsandberg/facenet/blob/master/util/plot_learning_curves.m).
 
 ### LFW accuracy
 <img src="lfw_accuracy_20180410_145627.png" width="1024" height="768" /><br>
-Here it can be seen that even if the accuracy in the last evaluation is 0.9965 the average
-accuracy for the last 10 evaluations is a bit lower (0.9950) which is probably closer
-to what one could expect when reproducing the results. The average is probably a better metric to use when
-for example comparing different hyper parameter settings.
+Ở đây có thể thấy rằng ngay cả khi độ chính xác trong đánh giá cuối cùng là 0,9965 trung bình độ chính xác cho 10 đánh giá gần đây thấp hơn một chút (0,9950), có lẽ gần hơn
+đến những gì người ta có thể mong đợi khi tái tạo kết quả. Trung bình có lẽ là một số liệu tốt hơn để sử dụng khi ví dụ so sánh các cài đặt cac sieu tham so khac nhau.
 
 ### Training/validation cross entropy loss
 <img src="xent_20180410_145627.png" width="1024" height="768" /><br>
-This figure shows the cross entropy loss during training (solid line) and validation (dashed line).
-The validation set consist of around 20000 images and evaluation is performed every 5 epochs.
-The cross entropy during training is logged at every training step but has been filtered with a sliding average filter over 500 steps.
-From this it's obvious that the model overfits a bit so it could be good to experiment a bit more with the L2 weight decay and dropout keep probability.
+Hình này cho thấy  cross entropy loss trong quá trình đào tạo (đường liền nét) và xác nhận (đường đứt nét).
+Bộ xác nhận bao gồm khoảng 20000 hình ảnh và đánh giá được thực hiện cứ sau 5 epoch.
 
+Cross entropy trong quá trình đào tạo được ghi lại ở mỗi bước đào tạo nhưng đã được lọc bằng bộ lọc trung bình trượt trên 500 bước.
+
+Từ điều này, rõ ràng là mo hinh co the da overfit một chút để có thể thử nghiệm thêm một chút với phân rã trọng lượng L2 và xác suất bỏ học.
 ### Training/validation accuracy
 <img src="accuracy_20180410_145627.png" width="1024" height="768" /><br>
-This figure shows the accuracy during training (solid line) and validation (dashed line).
-The validation set consist of around 20000 images and evaluation is performed every 5 epochs.
-The accuracy during training is logged at every training step but has been filtered with a sliding average filter over 500 steps.
+Hình này cho thấy độ chính xác trong quá trình đào tạo (đường liền nét) và xác nhận (đường đứt nét).
+
+Bộ xác nhận bao gồm khoảng 20000 hình ảnh và đánh giá được thực hiện cứ sau 5 epoch.
+
+Độ chính xác trong quá trình đào tạo được ghi lại ở mỗi bước đào tạo nhưng đã được lọc bằng bộ lọc trung bình trượt trên 500 bước.
